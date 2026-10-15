@@ -1,0 +1,56 @@
+{
+  "config_version": "1.0",
+  "created_at": "2026-09-26",
+  "created_at_stage": "stage0_decision",
+  "field": "liability_ratio",
+  "main_strategy": "missing_as_zero_code",
+  "sensitivity_strategy": "keep_zero",
+  "_main_strategy_definition": "将 raw == 0 视为『未抽取到责任比例』的缺失编码，转换为 NaN，并用缺失指示变量建模。",
+  "_sensitivity_strategy_definition": "对照方案：保留 raw == 0 作为真实责任比例 0（被告无责），用于敏感性分析，检验主策略结论的稳健性。",
+  "evidence": {
+    "source": "results/stage0/stage0_deep_audit.csv",
+    "n_raw_zero": 1935,
+    "n_raw_positive": 434,
+    "n_raw_nan": 11,
+    "sr_total_mean_when_zero": 0.668932,
+    "sr_total_median_when_zero": 0.732095,
+    "sr_total_mean_when_positive": 0.74476,
+    "share_award_positive_when_zero": 0.9804,
+    "verdict": "SUSPECT_MISSING_ENCODED_AS_ZERO",
+    "reasoning": "若 0 表示被告无责，支持率应接近 0；实测 SR_total 均值 0.669、98% 的案件有判赔，与『被告无责』解释矛盾，故判定 0 为缺失编码。"
+  },
+  "derived_fields": [
+    {
+      "name": "liability_ratio_raw",
+      "rule": "原样保留原始抽取值（含 0 与 NaN）",
+      "purpose": "审计追溯与敏感性分析基线，不直接进入模型"
+    },
+    {
+      "name": "liability_ratio_clean",
+      "rule": "raw == 0 -> NaN；raw > 0 -> 保留原值；raw 为 NaN -> NaN",
+      "purpose": "主策略建模字段"
+    },
+    {
+      "name": "liability_missing",
+      "rule": "liability_ratio_clean 缺失 -> 1；否则 -> 0",
+      "purpose": "缺失指示变量，保留缺失机制信息（缺失本身可能具有语义）"
+    }
+  ],
+  "imputation": {
+    "method": "由 Stage 1 在 Pipeline 内、仅在训练折内拟合",
+    "candidates": ["median", "most_frequent(0.3)", "model_based"],
+    "note": "禁止在划分前使用全量统计填补；禁止用 *_award / support_rate 等判后信息指导填补"
+  },
+  "prohibitions": [
+    "禁止删除任何样本",
+    "禁止将 raw == 0 直接作为真实责任比例 0 参与主实验",
+    "禁止用判后字段推断责任比例"
+  ],
+  "reporting": {
+    "paper_statement": "责任比例字段存在编码缺失问题（81.3% 的记录取值为 0，经检验应判定为未抽取的缺失编码），本研究采用缺失指示变量 + 填补策略，并在论文中明确报告该数据质量局限。"
+  },
+  "reextraction_decision": {
+    "decision": "NOT_REEXTRACT",
+    "doc": "configs/liability_extraction_decision.md"
+  }
+}

@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Temporary / logs
+*.tmp
+*.log
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Model artifacts
+*.pkl
+*.joblib
+
+# NOTE: `results/` is intentionally NOT ignored.
+# The repository ships frozen reference outputs (OOF parquet, metric CSV/JSON,
+# paper tables) so that reviewers can verify claims without re-running the
+# full 15-fold cross-validation. Re-running scripts/01-05 regenerates them.

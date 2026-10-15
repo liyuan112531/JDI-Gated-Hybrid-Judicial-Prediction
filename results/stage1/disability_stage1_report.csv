@@ -1,0 +1,27 @@
+﻿section,key,value
+raw_distribution,value_0.0,1722
+raw_distribution,value_1.0,18
+raw_distribution,value_2.0,10
+raw_distribution,value_3.0,3
+raw_distribution,value_4.0,6
+raw_distribution,value_6.0,6
+raw_distribution,value_7.0,20
+raw_distribution,value_8.0,33
+raw_distribution,value_9.0,101
+raw_distribution,value_10.0,459
+raw_distribution,value_25.0,1
+raw_distribution,value_NaN,1
+raw_distribution,n_rows,2380
+raw_distribution,n_nan,1
+raw_distribution,n_25_abnormal,1
+clean_distribution,n_valid,2378
+clean_distribution,n_missing,2
+clean_distribution,missing_rate,0.00084
+clean_distribution,share_level_0,0.723529
+clean_distribution,share_level_1_10,0.27563
+derived,disability_abnormal_n,1
+derived,disability_missing_n,2
+policy,encoding_status,CONFIRMED
+policy,encoding_confirmed,"{""0"": ""无伤残等级（未评定 / 不构成伤残）"", ""1-10"": ""伤残等级，1 级最重、10 级最轻（已正式确认）"", ""25"": ""异常值（超出 1-10 取值域，判定为抽取错误）""}"
+policy,dual_encoding_required,True
+policy,sample_deletion,NONE（禁止删除异常样本）

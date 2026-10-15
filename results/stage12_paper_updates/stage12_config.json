@@ -1,0 +1,18 @@
+{
+  "stage": "05_generate_paper_tables",
+  "main_model": "Gated Hybrid (gamma=1.0)",
+  "metrics_locked": [
+    "MAE",
+    "RMSE",
+    "R2",
+    "MdAE"
+  ],
+  "task_a": "主模型案件级 OOF 分组误差（4 维度）",
+  "task_b": "提升路径（S0/S1 本仓库重算 + 04 案件级 OOF pooled）",
+  "task_c": {
+    "split": "year==2022 train / year==2023 test",
+    "protocol": "主模型核心逻辑重演：折内规则/JDI + 异质三头 + gamma=1 门控",
+    "n_train": 2042,
+    "n_test": 338
+  }
+}

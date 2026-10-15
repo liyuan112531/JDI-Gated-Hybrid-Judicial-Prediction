@@ -1,0 +1,52 @@
+{
+  "stage": "04_ultimate_gated_model",
+  "protocol": {
+    "n_splits": 5,
+    "n_repeats": 3,
+    "random_state": 42,
+    "strata": "year|procedure_type|sr_total_quintile (发表版口径)"
+  },
+  "hetero_assignment": {
+    "lost_income": "CatBoost",
+    "nursing": "CatBoost",
+    "property_loss": "CatBoost",
+    "transport": "CatBoost",
+    "mental_solatium": "LightGBM",
+    "nutrition": "LightGBM",
+    "other": "LightGBM"
+  },
+  "heads": {
+    "LightGBM": {
+      "mean": "objective='regression'",
+      "q10/q90": "objective='quantile', alpha=0.1/0.9"
+    },
+    "CatBoost": {
+      "mean": "loss_function='RMSE'",
+      "q10/q90": "loss_function='Quantile:alpha=0.1/0.9'"
+    }
+  },
+  "uncertainty": "delta_uncert = clip(q90 - q10, 0, None)",
+  "dynamic_weight": "w_dynamic = w_i(fold-internal minmax JDI) * exp(-gamma * delta)",
+  "gamma_list": [
+    0.0,
+    1.0
+  ],
+  "gamma_final": 1.0,
+  "internal_references": {
+    "Full ML (no fusion)": {
+      "MAE": 0.170401997161199,
+      "RMSE": 0.23610292992497606,
+      "R2": 0.33042636358791927
+    },
+    "Soft Hybrid (gamma=0)": {
+      "MAE": 0.16734244865928782,
+      "RMSE": 0.2372758755798633,
+      "R2": 0.32375085288795996
+    }
+  },
+  "notes": [
+    "规则与 JDI 均为训练折内计算，非 03 OOF / 02 冻结值",
+    "分项模型指派与 gamma=1.0 均为冻结的最佳设定（原 Stage 5 / Stage 9-10 扫描选定）",
+    "gamma 网格在原开发数据上扫描选定，正式结论需独立数据确认"
+  ]
+}

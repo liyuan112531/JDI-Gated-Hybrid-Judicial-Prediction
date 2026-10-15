@@ -1,0 +1,51 @@
+{
+  "created_at": "2026-09-26T09:41:49",
+  "stage": "stage0",
+  "principle": "禁止任何判后（判决结果）信息进入模型特征；仅允许判前信息。",
+  "blacklist": [
+    "*_award",
+    "award_total",
+    "support_rate",
+    "support_rate_pct",
+    "n_nonzero_items"
+  ],
+  "blacklist_reason": {
+    "*_award": "16 项实际判赔金额，属判后结果",
+    "award_total": "判赔总额，属判后结果",
+    "support_rate": "案件级实际支持率，是最终评价标签，非特征",
+    "support_rate_pct": "同上（百分数形式）",
+    "n_nonzero_items": "泄漏检查结果 add_to_blacklist=YES；仅在被证明等于非零 CLAIM 项数时才可解禁，否则按保守原则禁用"
+  },
+  "conditional_fields": {
+    "text_len": "空列 -> candidate_drop",
+    "disability_level": "语义待人工确认（NEED_MANUAL_CONFIRM），语义未定前可用但需标注",
+    "liability_ratio": "判前可用；存在缺失，Stage 1 决定填补策略",
+    "file_name": "仅允许从中解析判前元数据（年份/地区/审理程序），不得解析判后内容"
+  },
+  "allowed_feature_examples": [
+    "liability_ratio",
+    "disability_level",
+    "medical_claim",
+    "future_medical_claim",
+    "hospital_meal_claim",
+    "nutrition_claim",
+    "nursing_claim",
+    "lost_income_claim",
+    "transport_claim",
+    "accommodation_claim",
+    "disability_comp_claim",
+    "assistive_device_claim",
+    "death_comp_claim",
+    "funeral_claim",
+    "mental_solatium_claim",
+    "property_loss_claim",
+    "appraisal_claim",
+    "other_claim",
+    "claim_total",
+    "doc_year",
+    "doc_region",
+    "doc_proc_level",
+    "由 *_claim 派生的占比/对数/非零项数(自建 n_nonzero_claims)"
+  ],
+  "enforcement": "Stage 1 起在 features.py 中硬校验：任何落入 blacklist 的字段不得进入特征矩阵。"
+}

@@ -1,0 +1,116 @@
+{
+  "version": "1.0",
+  "frozen_at": "2026-09-26T10:18:24",
+  "frozen_at_stage": "stage2_decision",
+  "purpose": "司法确定性指数（JDI）的构造、权重、分层规则与法律先验定位的冻结定义",
+  "jdi_definition": "JDI 衡量某一赔偿项目『判决结果由稳定规则决定的程度』；JDI 越高 → 支持率越集中、越可归因于客观规则 → 适合规则计算；JDI 越低 → 支持率越分散、裁量空间越大 → 适合数据驱动预测。",
+  "construction": {
+    "steps": [
+      "计算 9 项基础指标",
+      "选取 7 项进入指数（其余为诊断指标）",
+      "各分量跨 16 个项目 min-max 归一化到 [0,1]",
+      "负向指标取 1 - x",
+      "加权求和后线性映射到 0-100"
+    ],
+    "weights": {
+      "p_sr_eq_1": 0.2,
+      "p_sr_eq_0": 0.1,
+      "SR_mode_density_bin10": 0.2,
+      "liability_consistency": 0.1,
+      "SR_entropy_norm": 0.15,
+      "std_SR": 0.15,
+      "IQR_SR": 0.1
+    },
+    "direction": {
+      "positive": [
+        "SR_mode_density_bin10",
+        "liability_consistency",
+        "p_sr_eq_0",
+        "p_sr_eq_1"
+      ],
+      "negative": [
+        "IQR_SR",
+        "SR_entropy_norm",
+        "std_SR"
+      ]
+    },
+    "excluded_diagnostic_metrics": {
+      "claim_SR_MI": "反映『可预测性』而非『司法确定性』，方向不可解释（高 MI 可能来自复杂裁量），仅作诊断指标",
+      "disability_explanatory_power": "仅部分项目适用（伤残相关），纳入会引入项目间不可比性，仅作诊断指标",
+      "CV_SR": "与 std_SR 高度共线，避免重复计权",
+      "legal_rule_strength": "法律先验用于分层决策，不进入数据驱动指数本身"
+    },
+    "reliability_handling": {
+      "rule": "liability_consistency 在子集样本 n<30 时标记为不可靠（liability_reliable=0），归一化时以中性值 0.5 填充，避免小子集噪声主导排序",
+      "note": "该处理在敏感性分析中检验其影响"
+    }
+  },
+  "stratification_rule": {
+    "method": "JDI 降序排列后取最大间隙作为数据驱动分界",
+    "gap_cut_JDI": 38.5306,
+    "rule_based_condition": "JDI_score >= gap_cut",
+    "ml_based_condition": "JDI_score < gap_cut",
+    "sample_size_role": "仅决定 C 类标记，不决定 A/B 归属（A/B 与 C 正交）",
+    "c_class_members": [
+      "death_comp",
+      "funeral",
+      "accommodation",
+      "future_medical"
+    ]
+  },
+  "legal_prior": {
+    "status": "AUXILIARY_ONLY",
+    "allowed_use": [
+      "解释 JDI 分类结果",
+      "分析数据驱动结果与法律规则的一致性",
+      "论文讨论部分"
+    ],
+    "prohibited_use": [
+      "作为 JDI 最终排序的决定因素",
+      "作为 A/B 归属的判定条件",
+      "作为任何加权或阈值参数"
+    ],
+    "source": "scripts/stage2_jdi_analysis.py 中的 LEGAL_BASIS 字典（法学先验，人工提供）",
+    "note": "法律先验保留在数据产物中（JDI_ranking.csv 的 legal_basis_type / legal_rule_strength 列），但仅用于解释与一致性分析。"
+  },
+  "verification": {
+    "method": "仅依据 JDI 分数与数据驱动分界（最大间隙）重新判定 A/B 归属，不使用法律先验",
+    "gap_cut_JDI": 38.5306,
+    "gap_size": 14.3952,
+    "ab_assignment_identical": true,
+    "final_assignment_identical": true,
+    "n_ab_differences": 0,
+    "n_final_differences": 0,
+    "conclusion": "法律先验在 Stage 2 中仅影响判定理由文本（是否标记冲突），未改变任何项目的最终归属；因此将其定位降级为解释性用途后，分层结果完全不变。"
+  },
+  "frozen_tiers": {
+    "rule_based": [
+      "appraisal",
+      "assistive_device",
+      "disability_comp",
+      "hospital_meal",
+      "medical"
+    ],
+    "ml_based": [
+      "lost_income",
+      "mental_solatium",
+      "nursing",
+      "nutrition",
+      "other",
+      "property_loss",
+      "transport"
+    ],
+    "small_sample": [
+      "accommodation",
+      "death_comp",
+      "funeral",
+      "future_medical"
+    ]
+  },
+  "frozen_outputs": [
+    "results/stage2/JDI_ranking.csv",
+    "results/stage2/jdi_weight_config.json",
+    "results/stage2/item_strategy_assignment.csv",
+    "results/stage2/jdi_sensitivity.csv"
+  ]
+}

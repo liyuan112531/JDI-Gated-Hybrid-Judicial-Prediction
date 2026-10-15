@@ -1,0 +1,267 @@
+# =============================================================
+# 统一实验规范（Stage 1 - Stage 7）
+# 交通事故损害赔偿司法支持率预测
+# 由 Stage 0 审计结论生成，后续所有 Stage 必须遵循本文件
+# =============================================================
+config_version: "1.0"
+created_at: "2026-09-26"
+created_at_stage: stage0_decision
+project: 交通事故损害赔偿司法支持率预测
+
+data:
+  source: data/全量表_分项收敛_2380.csv
+  encoding: utf-8-sig
+  n_rows: 2380
+  n_items: 16
+  items:
+    - medical
+    - future_medical
+    - hospital_meal
+    - nutrition
+    - nursing
+    - lost_income
+    - transport
+    - accommodation
+    - disability_comp
+    - assistive_device
+    - death_comp
+    - funeral
+    - mental_solatium
+    - property_loss
+    - appraisal
+    - other
+
+# -------------------------------------------------------------
+# 0. 全局规范
+# -------------------------------------------------------------
+global:
+  random_state: 42
+  n_splits: 5
+  n_repeats: 3
+  split_level: case                 # 案件级切分；分项样本随所属案件落入同一折
+  stratify_by:                      # 组合为单一分层变量后做 StratifiedKFold
+    - doc_year                      # 2022 / 2023
+    - sr_total_bin                  # 案件级支持率十分位分箱（Stage 1 生成）
+    - liability_missing             # 责任比例缺失指示
+  pipeline_only_fitting: true       # 所有预处理/编码/填补必须放进 Pipeline，仅在训练折内 fit
+  group_split: false                # 无真实重复案件（file_name 与 doc_sha256 均唯一），无需 GroupKFold
+  numpy_constraint: "1.26.4（禁止升级/降级，base 环境）"
+  prohibited_actions:
+    - 删除任何样本
+    - 使用任何判后字段（见 feature_policy.blacklist）
+    - 在训练/测试划分之前使用全量统计量（填补、编码、标准化）
+    - 预先指定最优模型
+
+# -------------------------------------------------------------
+# 1. 特征策略
+# -------------------------------------------------------------
+feature_policy:
+  principle: 仅允许判前信息；凡无法 100% 证明为判前可得的字段，一律按判后禁用处理
+  blacklist:
+    - "*_award"            # 16 项实际判赔金额
+    - award_total          # 判赔总额
+    - support_rate         # 案件级实际支持率（最终评价标签）
+    - support_rate_pct     # 同上（百分数形式）
+    - n_nonzero_items      # 经审计 100% 等于非零 award 项数，判后字段
+    - text_len             # 全空列，candidate_drop
+  blacklist_source: results/stage0/feature_blacklist.json
+  allowed_base:
+    - liability_ratio_clean
+    - liability_missing
+    - disability_level_clean
+    - disability_abnormal
+    - disability_missing
+    - "*_claim"            # 16 项请求金额（判前可得）
+    - claim_total
+    - doc_year             # 由 file_name 解析
+    - doc_proc_level       # 一审/二审/再审/其他（由 document_index 关联）
+  allowed_derived:
+    - n_nonzero_claims           # 自建：非零 *_claim 项数（替代 n_nonzero_items）
+    - claim_share__<item>        # 分项请求占 claim_total 比例
+    - log1p_claim__<item>        # 请求金额对数
+    - claim_total_log1p
+    - has_disability_comp_claim  # 是否主张残疾赔偿金
+    - has_death_comp_claim       # 是否主张死亡赔偿金
+    - has_mental_solatium_claim  # 是否主张精神损害抚慰金
+    - liability_x_disability     # 责任比例 × 伤残等级交互
+  forbidden_derived:
+    - 任何由 *_award / award_total / support_rate 派生的量
+    - 任何在划分前使用全量目标统计的 target encoding
+  encoding:
+    disability_level: 双轨（主：有序数值 0-10；对照：类别独热），Stage 4 报告两套结果
+    doc_proc_level: 类别编码
+    doc_year: 数值或二分类别
+  region_note: >-
+    全部样本来自单一地区（01-北京市），地区变量无区分度，不得作为模型特征；
+    论文须声明外部效度局限（结论不可直接外推至其他地区）。
+
+# -------------------------------------------------------------
+# 2. 标签策略
+# -------------------------------------------------------------
+label_policy:
+  sr_item:
+    definition: "SR_i = award_i / claim_i"
+    domain: "仅在 claim_i > 0 时定义"
+    undefined_handling: "claim_i = 0 -> 不参与训练；案件聚合时按 0 计入"
+    clip: "预测值裁剪至 [0, 1]"
+    audit_fact: "审计未发现 SR_i > 1 或 claim_i = 0 且 award_i > 0 的记录"
+  sr_total:
+    definition: "SR_total = sum(award_i) / sum(claim_i)"
+    role: 系统级最终评价标签
+    audit_fact: "与 support_rate 字段完全一致（0 条不一致记录）"
+  award_recovery:
+    formula: "Award_i_hat = Claim_i * SR_i_hat"
+  tasks:
+    task_A:
+      name: 金额预测
+      mapping: "判前特征 -> Award_i"
+      note: 需与任务 B 在同协议、同折、同模型下对比
+    task_B:
+      name: 支持率预测
+      mapping: "判前特征 -> SR_i (in [0, 1])"
+      note: 天然归一化，保证 Award <= Claim
+    comparison_rule: "以案件级 SR_total 误差为裁决指标，而非分项级误差"
+
+# -------------------------------------------------------------
+# 3. 责任比例策略
+# -------------------------------------------------------------
+liability_policy:
+  config_file: configs/liability_strategy.json
+  main_strategy: missing_as_zero_code
+  sensitivity_strategy: keep_zero
+  fields:
+    liability_ratio_raw: 原样保留（含 0 与 NaN），仅用于审计与敏感性基线
+    liability_ratio_clean: "raw == 0 -> NaN；raw > 0 -> 原值"
+    liability_missing: "clean 缺失 -> 1；否则 -> 0"
+  imputation:
+    scope: Pipeline 内、仅训练折内拟合
+    candidates: [median, most_frequent, model_based]
+  prohibitions:
+    - 禁止删除样本
+    - 禁止将 raw == 0 直接作为真实责任比例 0 参与主实验
+    - 禁止用判后字段推断责任比例
+  reextraction: NOT_REEXTRACT   # 见 configs/liability_extraction_decision.md
+
+# -------------------------------------------------------------
+# 4. 伤残等级策略
+# -------------------------------------------------------------
+disability_policy:
+  config_file: configs/disability_strategy.json
+  encoding_status: CONFIRMED
+  confirmed_encoding:
+    "0": 无伤残等级
+    "1-10": 伤残等级（1 级最重、10 级最轻，已正式确认）
+    "25": 异常值
+  severity_direction: 数值越小伤残越重（1 级最重，10 级最轻），已确认
+  fields:
+    disability_level_clean: "0 / 1-10 保留原值；25 -> NaN；原 NaN -> NaN"
+    disability_abnormal: "原值 == 25 -> 1；其他 -> 0"
+    disability_missing: "clean 缺失 -> 1；否则 -> 0"
+  prohibitions:
+    - 禁止删除异常样本（level = 25 的 1 例）
+    - 禁止删除缺失样本
+    - 禁止在论文中对编码口径给出无证据断言
+  dual_encoding_required: true
+
+# -------------------------------------------------------------
+# 5. 小样本策略
+# -------------------------------------------------------------
+small_sample_policy:
+  config_file: configs/small_sample_policy.md
+  strategy: THREE_TIER_ABC
+  category_label: Small-sample / Low-support-risk category
+  principle: 样本量不决定规则/机器学习的归属，仅标记证据强度；C 类由样本规模、
+    SR 分布特殊性、预测稳定性不足三项依据综合判定，不再采用 n<100 唯一标准
+  small_sample_items:
+    death_comp: 78
+    funeral: 78
+    accommodation: 104
+    future_medical: 172
+  rules:
+    - 不删除任何项目
+    - 保留全部项目统计
+    - 禁止因样本量不足直接判定为规则项目
+    - 标记 small_sample = true
+    - 仅做探索性分析
+    - 不参与主要模型排名
+    - 不进行超参数搜索
+    - 结果单独成表并标注 exploratory
+  system_integration_fallback: Rule-informed fallback（Stage 2 决策冻结）
+  fallback_priority:
+    P1: 存在明确法律计算公式 -> 规则计算（death_comp、funeral）
+    P2: 存在规则约束但无完整公式 -> 规则约束 + 训练集 SR 统计先验
+        （accommodation、future_medical）
+    P3: 无规则 -> 训练集 SR 中位数（当前无项目落入）
+  fallback_constraints:
+    - 统计量仅在训练折内计算
+    - 禁止 C 类项目直接进入主要模型排名
+    - Stage 6 执行「C 类回退 vs C 类强制建模」消融
+
+# -------------------------------------------------------------
+# 6. TabPFN 策略
+# -------------------------------------------------------------
+tabpfn_policy:
+  config_file: configs/tabpfn_strategy.md
+  current_status: AVAILABLE_IMPORT_OK__NO_LOCAL_WEIGHT_CACHE__DOWNLOAD_REQUIRED_BUT_BLOCKED
+  package_version: "2.1.4"
+  download_now: false
+  decision: 不在 Stage 0 - Stage 3 下载权重；TabPFN 仅为候选模型之一
+  prerequisites_before_enable:
+    - Stage 1 数据与特征构造完成
+    - Stage 2 JDI 与 A/B/C 划分完成
+    - Stage 3 规则引擎与基线完成
+    - Stage 4 传统模型横评形成对照基线
+  if_unavailable: 横评表标注 unavailable (weights not downloaded)，不得留白或删除该行
+  prohibitions:
+    - 禁止未授权下载
+    - 禁止为适配 TabPFN 修改 numpy 版本
+    - 禁止在横评前宣称 TabPFN 为预期最优
+
+# -------------------------------------------------------------
+# 7. 评估与模型策略（补充规范）
+# -------------------------------------------------------------
+evaluation_policy:
+  primary_metric: 案件级 SR_total 的 MAE
+  secondary_metrics: [RMSE, MdAE, R2, hit_rate_pm5pct, hit_rate_pm10pct]
+  item_level_metrics: [MAE, RMSE, R2]
+  required_baselines:
+    - 全局支持率常数
+    - 分项支持率中位数
+    - SR_i = liability_ratio
+    - Award = Claim * liability_ratio
+  model_pool:
+    - LinearRegression
+    - Ridge
+    - ElasticNet
+    - RandomForest
+    - XGBoost
+    - LightGBM
+    - CatBoost
+    - HistGradientBoosting
+    - SVR
+    - KNN
+    - MLP
+    - TabPFN（待授权）
+  tuning_rule: 先统一默认参数盲评，top-3 再做小网格随机搜索（nested CV，仅训练折内）
+  significance: 报告 5 折 × 3 次重复的均值 ± 标准差
+
+# -------------------------------------------------------------
+# 8. 可复现性
+# -------------------------------------------------------------
+reproducibility:
+  save_per_stage:
+    - 数据处理结果
+    - 模型参数
+    - 训练日志
+    - 评价指标
+    - 图表
+    - 实验报告
+  directories:
+    code: scripts/
+    tables: results/tables/
+    figures: results/figures/
+    logs: results/logs/
+    models: results/models/
+    reports: results/reports/
+  stage_reports: "每阶段结束生成 results/reports/stageN_summary.md 与 stageN_metrics.json"
+  config_freeze: 本文件为 Stage 1-7 的唯一策略源，任何修改需记录版本与理由

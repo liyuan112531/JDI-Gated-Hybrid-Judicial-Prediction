@@ -1,0 +1,67 @@
+{
+  "version": "1.0",
+  "created_at": "2026-10-10T16:50:37",
+  "stage": "stage2",
+  "method": "各分量先跨 16 个项目做 min-max 归一化到 [0,1]，负向指标取 1-x，再加权求和后线性映射到 0-100",
+  "weights": {
+    "p_sr_eq_1": 0.2,
+    "p_sr_eq_0": 0.1,
+    "SR_mode_density_bin10": 0.2,
+    "liability_consistency": 0.1,
+    "SR_entropy_norm": 0.15,
+    "std_SR": 0.15,
+    "IQR_SR": 0.1
+  },
+  "direction": {
+    "positive": [
+      "SR_mode_density_bin10",
+      "liability_consistency",
+      "p_sr_eq_0",
+      "p_sr_eq_1"
+    ],
+    "negative": [
+      "IQR_SR",
+      "SR_entropy_norm",
+      "std_SR"
+    ]
+  },
+  "excluded_from_index": {
+    "claim_SR_MI": "反映『可预测性』而非『司法确定性』，方向不可解释（高 MI 可能来自复杂裁量），仅作诊断指标",
+    "disability_explanatory_power": "仅部分项目适用（伤残相关），纳入会引入项目间不可比性，仅作诊断指标",
+    "CV_SR": "与 std_SR 高度共线，避免重复计权",
+    "legal_rule_strength": "法律先验用于分层决策，不进入数据驱动指数本身"
+  },
+  "reliability_handling": {
+    "rule": "liability_consistency 在子集样本 n<30 时标记为不可靠（liability_reliable=0），归一化时以中性值 0.5 填充，避免小子集噪声主导排序",
+    "note": "该处理在敏感性分析中检验其影响"
+  },
+  "sensitivity_schemes": {
+    "default": {
+      "p_sr_eq_1": 0.2,
+      "p_sr_eq_0": 0.1,
+      "SR_mode_density_bin10": 0.2,
+      "liability_consistency": 0.1,
+      "SR_entropy_norm": 0.15,
+      "std_SR": 0.15,
+      "IQR_SR": 0.1
+    },
+    "equal": {
+      "p_sr_eq_1": 0.142857,
+      "p_sr_eq_0": 0.142857,
+      "SR_mode_density_bin10": 0.142857,
+      "liability_consistency": 0.142857,
+      "SR_entropy_norm": 0.142857,
+      "std_SR": 0.142857,
+      "IQR_SR": 0.142857
+    },
+    "rule_oriented": {
+      "p_sr_eq_1": 0.25,
+      "p_sr_eq_0": 0.125,
+      "SR_mode_density_bin10": 0.25,
+      "liability_consistency": 0.125,
+      "SR_entropy_norm": 0.09375,
+      "std_SR": 0.09375,
+      "IQR_SR": 0.0625
+    }
+  }
+}

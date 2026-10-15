@@ -1,0 +1,65 @@
+{
+  "config_version": "2.0",
+  "created_at": "2026-09-26",
+  "created_at_stage": "stage0_decision",
+  "field": "disability_level",
+  "encoding_status": "CONFIRMED",
+  "confirmed_encoding": {
+    "0": "无伤残等级（未评定 / 不构成伤残）",
+    "1-10": "伤残等级，1 级最重、10 级最轻（已正式确认）",
+    "25": "异常值（超出 1-10 取值域，判定为抽取错误）"
+  },
+  "_evidence": "level=10 组残疾赔偿金主张率 0.937、死亡赔偿金主张率 0.002 -> 10 属伤残等级而非死亡；level=0 组残疾赔偿金主张率 0.006 -> 0 为无伤残等级；level=25 仅 1 例且超出取值域。",
+  "evidence_source": "results/stage0/stage0_deep_audit.csv（section B_disability_semantics）",
+  "distribution": {
+    "0": 1722,
+    "1": 18,
+    "2": 10,
+    "3": 3,
+    "4": 6,
+    "6": 6,
+    "7": 20,
+    "8": 33,
+    "9": 101,
+    "10": 459,
+    "25": 1,
+    "NaN": 1
+  },
+  "derived_fields": [
+    {
+      "name": "disability_level_clean",
+      "rule": "0 -> 0；1-10 -> 原值；25 -> NaN；原 NaN -> NaN",
+      "purpose": "主建模字段（继续采用）"
+    },
+    {
+      "name": "disability_abnormal",
+      "rule": "原始值 == 25 -> 1；其他（含 NaN）-> 0",
+      "purpose": "异常值指示变量（继续采用）"
+    },
+    {
+      "name": "disability_missing",
+      "rule": "disability_level_clean 缺失 -> 1；否则 -> 0",
+      "purpose": "缺失指示变量（继续采用）"
+    }
+  ],
+  "encoding_for_model": {
+    "primary": "有序数值编码（ordinal，0-10）",
+    "sensitivity": "类别独热编码（categorical one-hot）",
+    "note": "语义方向（1 最重 / 10 最轻）未逐案核验，Stage 4 必须同时报告两套编码下的模型表现；若两者结论一致，则方向假设不影响结论。"
+  },
+  "prohibitions": [
+    "禁止删除异常样本（level=25 的 1 例）",
+    "禁止删除缺失样本",
+    "禁止在论文中对 0/1-10 的口径给出无证据的断言；须标注 TENTATIVELY_CONFIRMED"
+  ],
+  "reporting": {
+    "paper_statement": "伤残等级编码为：0 = 无伤残等级；1–10 = 伤残等级（1 级最重、10 级最轻）；25 判定为抽取异常并置为缺失。该编码已经正式确认，研究同时报告有序编码与独热编码两套结果作为编码稳健性检验。"
+  },
+  "updated_at": "2026-09-26T10:18:24",
+  "updated_at_stage": "stage2_decision",
+  "severity_direction": {
+    "confirmed": true,
+    "direction": "数值越小伤残越重（1 级最重，10 级最轻）",
+    "note": "该方向与法学惯例一致，并已由用户正式确认；Stage 4 仍按既定双轨编码（有序数值 / 类别独热）报告两套结果作为稳健性检验。"
+  }
+}

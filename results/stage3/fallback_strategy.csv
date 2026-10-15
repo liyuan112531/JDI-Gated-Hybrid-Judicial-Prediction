@@ -1,0 +1,5 @@
+﻿item_name,sample_size,fallback_priority,fallback_type,formula,legal_basis,reason,params,rule_MAE_selected,rule_MAE_legal_prior,baseline_B2_MAE,prohibited,ablation_stage
+death_comp,78,P1,CapRule,"SR = min(1, R / claim)，R = 训练折内 SR=1 样本 claim 的中位数（近似法定额度）",死亡赔偿金 = 人均可支配收入 × 法定年限（法定公式）,存在明确法定计算公式，按规则计算；请求未超出法定额度时全额支持，超出部分按额度压缩,"{""q"": 0.5, ""min_full"": 3}",0.123052,0.186867,0.121964,禁止直接进入主要模型排名；禁止删除；统计量仅训练折内计算,6
+funeral,78,P1,CapRule,"SR = min(1, R / claim)，R = 训练折内 SR=1 样本 claim 的中位数（近似法定额度）",丧葬费 = 职工月平均工资 × 6 个月（法定标准）,存在明确法定标准，按规则计算,"{""q"": 0.5, ""min_full"": 3}",0.083782,0.079974,0.141663,禁止直接进入主要模型排名；禁止删除；统计量仅训练折内计算,6
+accommodation,104,P2,QuantilePriorRule,"SR = 训练折内同请求金额分位档的 SR 中位数（clip 到 [0,1]）",住宿费：凭据 + 合理性酌定（有约束，无完整公式）,存在规则约束（需凭据且合理）但无完整计算公式，采用规则约束 + 训练集统计先验,"{""n_bins"": 3}",0.282901,0.282901,0.282901,禁止直接进入主要模型排名；禁止删除；统计量仅训练折内计算,6
+future_medical,172,P2,QuantilePriorRule,"SR = 训练折内同请求金额分位档的 SR 中位数（clip 到 [0,1]）",后续医疗费：需鉴定结论或待实际发生后另行主张（有约束，无完整公式）,存在规则约束（需鉴定或待实际发生）但无完整计算公式，采用规则约束 + 训练集统计先验,"{""n_bins"": 3}",0.165487,0.165487,0.162903,禁止直接进入主要模型排名；禁止删除；统计量仅训练折内计算,6

@@ -1,0 +1,93 @@
+﻿field_name,source_type,category,allowed_as_feature,reason
+case_id,raw/derived,辅助分析字段,False,标识/冗余/一致性校验字段，不进入模型
+year,raw,判前输入特征,True,判前元数据（裁判年份）
+procedure_type,raw,判前输入特征,True,判前元数据（一审/二审/再审/其他）
+liability_ratio_raw,raw/derived,辅助分析字段,False,标识/冗余/一致性校验字段，不进入模型
+liability_ratio_clean,derived,判前输入特征,True,判前司法特征（raw==0 视为缺失编码转 NaN）
+liability_missing,derived,判前输入特征,True,责任比例缺失指示，保留缺失机制信息
+disability_level_raw,raw/derived,辅助分析字段,False,标识/冗余/一致性校验字段，不进入模型
+disability_level_clean,derived,判前输入特征,True,判前司法特征（25 视为异常转 NaN）
+disability_abnormal,derived,判前输入特征,True,伤残等级异常值指示
+disability_missing,derived,判前输入特征,True,伤残等级缺失指示（原始缺失 + 异常转换）
+medical_claim,raw,判前输入特征,True,判前可得
+future_medical_claim,raw,判前输入特征,True,判前可得
+hospital_meal_claim,raw,判前输入特征,True,判前可得
+nutrition_claim,raw,判前输入特征,True,判前可得
+nursing_claim,raw,判前输入特征,True,判前可得
+lost_income_claim,raw,判前输入特征,True,判前可得
+transport_claim,raw,判前输入特征,True,判前可得
+accommodation_claim,raw,判前输入特征,True,判前可得
+disability_comp_claim,raw,判前输入特征,True,判前可得
+assistive_device_claim,raw,判前输入特征,True,判前可得
+death_comp_claim,raw,判前输入特征,True,判前可得
+funeral_claim,raw,判前输入特征,True,判前可得
+mental_solatium_claim,raw,判前输入特征,True,判前可得
+property_loss_claim,raw,判前输入特征,True,判前可得
+appraisal_claim,raw,判前输入特征,True,判前可得
+other_claim,raw,判前输入特征,True,判前可得
+claim_total_calc,derived,判前输入特征,True,请求总额（由 16 项 claim 重算，判前可得）
+claim_total_orig,raw/derived,辅助分析字段,False,标识/冗余/一致性校验字段，不进入模型
+claim_total_diff,raw/derived,辅助分析字段,False,标识/冗余/一致性校验字段，不进入模型
+claim_total_consistency,raw/derived,辅助分析字段,False,标识/冗余/一致性校验字段，不进入模型
+n_nonzero_claims,derived,判前输入特征,True,自建非零 claim 项数，替代判后字段 n_nonzero_items
+claim_share__medical,derived,判前输入特征,True,判前可得
+claim_share__future_medical,derived,判前输入特征,True,判前可得
+claim_share__hospital_meal,derived,判前输入特征,True,判前可得
+claim_share__nutrition,derived,判前输入特征,True,判前可得
+claim_share__nursing,derived,判前输入特征,True,判前可得
+claim_share__lost_income,derived,判前输入特征,True,判前可得
+claim_share__transport,derived,判前输入特征,True,判前可得
+claim_share__accommodation,derived,判前输入特征,True,判前可得
+claim_share__disability_comp,derived,判前输入特征,True,判前可得
+claim_share__assistive_device,derived,判前输入特征,True,判前可得
+claim_share__death_comp,derived,判前输入特征,True,判前可得
+claim_share__funeral,derived,判前输入特征,True,判前可得
+claim_share__mental_solatium,derived,判前输入特征,True,判前可得
+claim_share__property_loss,derived,判前输入特征,True,判前可得
+claim_share__appraisal,derived,判前输入特征,True,判前可得
+claim_share__other,derived,判前输入特征,True,判前可得
+log_claim__medical,derived,判前输入特征,True,判前可得
+log_claim__future_medical,derived,判前输入特征,True,判前可得
+log_claim__hospital_meal,derived,判前输入特征,True,判前可得
+log_claim__nutrition,derived,判前输入特征,True,判前可得
+log_claim__nursing,derived,判前输入特征,True,判前可得
+log_claim__lost_income,derived,判前输入特征,True,判前可得
+log_claim__transport,derived,判前输入特征,True,判前可得
+log_claim__accommodation,derived,判前输入特征,True,判前可得
+log_claim__disability_comp,derived,判前输入特征,True,判前可得
+log_claim__assistive_device,derived,判前输入特征,True,判前可得
+log_claim__death_comp,derived,判前输入特征,True,判前可得
+log_claim__funeral,derived,判前输入特征,True,判前可得
+log_claim__mental_solatium,derived,判前输入特征,True,判前可得
+log_claim__property_loss,derived,判前输入特征,True,判前可得
+log_claim__appraisal,derived,判前输入特征,True,判前可得
+log_claim__other,derived,判前输入特征,True,判前可得
+sr_total_label,derived(label),预测标签,False,案件级支持率标签 = sum(award)/sum(claim)，最终系统评价目标，禁止入模
+item_name,derived,辅助分析字段,False,分项标识
+claim_amount,raw,判前输入特征,True,分项请求金额（判前可得）
+award_amount,raw,预测标签,False,分项实际判赔金额，label_only，禁止入模
+support_rate_label,derived(label),预测标签,False,SR_i = award_i / claim_i（仅 claim_i>0 定义），label_only
+claim_positive,derived,辅助分析字段,False,样本有效性标记（claim>0 才有标签），非特征
+item_claim_share,derived,判前输入特征,True,该分项请求占请求总额比例
+item_log_claim,derived,判前输入特征,True,log1p(分项请求金额)
+medical_award,raw,禁止字段,False,label_only：分项实际判赔金额，判后信息
+future_medical_award,raw,禁止字段,False,label_only：分项实际判赔金额，判后信息
+hospital_meal_award,raw,禁止字段,False,label_only：分项实际判赔金额，判后信息
+nutrition_award,raw,禁止字段,False,label_only：分项实际判赔金额，判后信息
+nursing_award,raw,禁止字段,False,label_only：分项实际判赔金额，判后信息
+lost_income_award,raw,禁止字段,False,label_only：分项实际判赔金额，判后信息
+transport_award,raw,禁止字段,False,label_only：分项实际判赔金额，判后信息
+accommodation_award,raw,禁止字段,False,label_only：分项实际判赔金额，判后信息
+disability_comp_award,raw,禁止字段,False,label_only：分项实际判赔金额，判后信息
+assistive_device_award,raw,禁止字段,False,label_only：分项实际判赔金额，判后信息
+death_comp_award,raw,禁止字段,False,label_only：分项实际判赔金额，判后信息
+funeral_award,raw,禁止字段,False,label_only：分项实际判赔金额，判后信息
+mental_solatium_award,raw,禁止字段,False,label_only：分项实际判赔金额，判后信息
+property_loss_award,raw,禁止字段,False,label_only：分项实际判赔金额，判后信息
+appraisal_award,raw,禁止字段,False,label_only：分项实际判赔金额，判后信息
+other_award,raw,禁止字段,False,label_only：分项实际判赔金额，判后信息
+award_total,raw,禁止字段,False,判赔总额，判后信息
+support_rate,raw,禁止字段,False,案件级实际支持率，判后信息（最终评价标签）
+support_rate_pct,raw,禁止字段,False,同上（百分数形式）
+n_nonzero_items,raw,禁止字段,False,经审计 100% 等于非零 award 项数，判后泄漏字段（脱敏时已剔除）
+text_len,raw,禁止字段,False,全空列，candidate_drop（脱敏时已剔除）

@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software or dataset, please cite it using the
+  metadata from this file.
+title: >-
+  Judicial Support Rate Prediction for Traffic Accident Damage
+  Compensation: A Rule-Machine Learning Continuous Fusion Framework
+  Driven by the Judicial Determinacy Index
+authors:
+  - family-names: Gu
+    given-names: Liyuan
+    affiliation: "School of Management Engineering, Capital University of Economics and Business"
+  - family-names: Miao
+    given-names: Mingyue
+    affiliation: "School of Management Engineering, Capital University of Economics and Business"
+  - family-names: Huang
+    given-names: Lihua
+    affiliation: "School of Management Engineering, Capital University of Economics and Business"
+  - family-names: Zhao
+    given-names: Fangxia
+    affiliation: "School of Management Engineering, Capital University of Economics and Business"
+version: 1.0.0
+date-released: "2026-10-15"
+license: MIT
+type: dataset
+keywords:
+  - traffic accident compensation
+  - support rate prediction
+  - judicial determinacy index
+  - machine learning
+  - rule-based reasoning
+  - legal analytics
+  - reproducibility

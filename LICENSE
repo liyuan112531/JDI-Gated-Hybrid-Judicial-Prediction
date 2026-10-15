@@ -1,0 +1,57 @@
+# Layered License Notice
+#
+# This repository uses a dual (layered) license:
+#
+#   1. Source Code  — everything under `src/`, `scripts/`, `tests/` and
+#      `configs/` — is released under the MIT License (see full text below;
+#      Copyright (c) 2026 Liyuan Gu, Mingyue Miao, Lihua Huang, Fangxia Zhao).
+#
+#   2. Anonymized Dataset (`data/dataset_anonymized.csv`) and Documentation
+#      (`README.md`, `data/DATA_DICTIONARY.md`, `src/rule_engine/definitions/*.md`,
+#      and all files under `results/`) — are released under the
+#      Creative Commons Attribution 4.0 International License (CC BY 4.0):
+#      https://creativecommons.org/licenses/by/4.0/
+#
+#      You are free to share and adapt these materials for any purpose,
+#      provided you give appropriate credit, provide a link to the license,
+#      and indicate if changes were made. No additional restrictions apply.
+#
+# By contributing to this repository you agree that your contributions are
+# licensed under the same layered terms.
+
+==============================================================================
+MIT License
+==============================================================================
+
+Copyright (c) 2026 Liyuan Gu, Mingyue Miao, Lihua Huang, Fangxia Zhao
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+==============================================================================
+Data License — CC BY 4.0 (summary, non-legally-binding)
+==============================================================================
+
+The anonymized dataset and the documentation files are licensed under the
+Creative Commons Attribution 4.0 International License. The full legal code
+is available at:
+
+    https://creativecommons.org/licenses/by/4.0/legalcode
+
+When using the dataset, please cite the paper associated with this repository
+(see CITATION.cff / README.md).

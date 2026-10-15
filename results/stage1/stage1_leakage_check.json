@@ -1,0 +1,120 @@
+{
+  "stage": "01_feature_engineering",
+  "generated_at": "2026-10-10T16:50:27",
+  "random_state": 42,
+  "policy_source": [
+    "configs/experiment_policy.yaml",
+    "configs/liability_strategy.json",
+    "configs/disability_strategy.json",
+    "configs/feature_blacklist.json"
+  ],
+  "n_case_level_feature_columns": 57,
+  "n_item_level_feature_columns": 60,
+  "case_level_feature_columns": [
+    "year",
+    "procedure_type",
+    "liability_ratio_clean",
+    "liability_missing",
+    "disability_level_clean",
+    "disability_abnormal",
+    "disability_missing",
+    "medical_claim",
+    "future_medical_claim",
+    "hospital_meal_claim",
+    "nutrition_claim",
+    "nursing_claim",
+    "lost_income_claim",
+    "transport_claim",
+    "accommodation_claim",
+    "disability_comp_claim",
+    "assistive_device_claim",
+    "death_comp_claim",
+    "funeral_claim",
+    "mental_solatium_claim",
+    "property_loss_claim",
+    "appraisal_claim",
+    "other_claim",
+    "claim_total_calc",
+    "n_nonzero_claims",
+    "claim_share__medical",
+    "claim_share__future_medical",
+    "claim_share__hospital_meal",
+    "claim_share__nutrition",
+    "claim_share__nursing",
+    "claim_share__lost_income",
+    "claim_share__transport",
+    "claim_share__accommodation",
+    "claim_share__disability_comp",
+    "claim_share__assistive_device",
+    "claim_share__death_comp",
+    "claim_share__funeral",
+    "claim_share__mental_solatium",
+    "claim_share__property_loss",
+    "claim_share__appraisal",
+    "claim_share__other",
+    "log_claim__medical",
+    "log_claim__future_medical",
+    "log_claim__hospital_meal",
+    "log_claim__nutrition",
+    "log_claim__nursing",
+    "log_claim__lost_income",
+    "log_claim__transport",
+    "log_claim__accommodation",
+    "log_claim__disability_comp",
+    "log_claim__assistive_device",
+    "log_claim__death_comp",
+    "log_claim__funeral",
+    "log_claim__mental_solatium",
+    "log_claim__property_loss",
+    "log_claim__appraisal",
+    "log_claim__other"
+  ],
+  "checks": [
+    {
+      "id": "C1_blacklist_column_scan",
+      "name": "特征列黑名单扫描",
+      "status": "PASS",
+      "detail": {
+        "banned_pattern": "(_award$|^award_total$|^support_rate$|^support_rate_pct$|^n_nonzero_items$|^text_len$)",
+        "hits": {
+          "case_level": [],
+          "item_level": []
+        },
+        "n_case_feature_cols": 57,
+        "n_item_feature_cols": 60
+      }
+    },
+    {
+      "id": "C2_provenance_declaration",
+      "name": "特征来源声明检查",
+      "status": "PASS",
+      "detail": {
+        "violations": {},
+        "rule": "任何允许入模的特征，其来源字段不得包含 award / support_rate"
+      }
+    },
+    {
+      "id": "C3_award_perturbation_invariance",
+      "name": "判后字段扰动不变性检验",
+      "status": "PASS",
+      "detail": {
+        "method": "将所有 *_award / award_total / support_rate / support_rate_pct / n_nonzero_items 随机扰动后重建特征矩阵，若与原始特征矩阵完全相同，则特征不依赖任何判后信息",
+        "shape": [
+          2380,
+          58
+        ],
+        "identical": true
+      }
+    },
+    {
+      "id": "C4_label_feature_separation",
+      "name": "标签与特征分离检查",
+      "status": "PASS",
+      "detail": {
+        "label_columns_found_in_features": []
+      }
+    }
+  ],
+  "overall": "PASS",
+  "action_if_fail": "停止并报告，不得进入 02"
+}

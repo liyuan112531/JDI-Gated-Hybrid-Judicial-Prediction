@@ -1,0 +1,206 @@
+{
+  "config_version": "2.0",
+  "created_at": "2026-09-26",
+  "created_at_stage": "stage0_decision",
+  "project": "交通事故损害赔偿司法支持率预测",
+  "_policy_note": "取消样本量阈值机械划分；C 类由『n<100 唯一标准』调整为 『Small-sample / Low-support-risk category』，按样本规模、SR 分布特殊性、预测稳定性不足三项依据综合判定。",
+  "strategy": "THREE_TIER_ABC",
+  "tiers": {
+    "A": {
+      "name": "rule_based",
+      "label": "Rule-based 项目",
+      "definition": "司法确定性高、法律规则明确、金额计算稳定、判决主要依赖客观证据的项目；采用规则计算支持率，不进行机器学习预测。"
+    },
+    "B": {
+      "name": "ml_based",
+      "label": "Machine-learning 项目",
+      "definition": "法官自由裁量空间较大、请求金额无法完全决定判赔金额、支持率波动较大的项目；采用机器学习预测支持率。"
+    },
+    "C": {
+      "name": "small_sample",
+      "label": "Small-sample / Low-support-risk category",
+      "definition": "样本规模有限、支持率分布特殊（极端驳回或极端支持集中）、或预测稳定性不足的赔偿项目；保留全部统计，进行探索性分析，不参与主要模型排名，最终案件级预测采用 Rule-informed fallback。",
+      "criteria": [
+        "样本规模：有效样本（claim > 0）显著少于主流项目",
+        "SR 分布特殊性：支持率高度集中于 0 或 1 等极端值，或分布形态不稳定",
+        "预测稳定性不足：交叉验证下性能估计方差过大，模型排名不可靠"
+      ],
+      "members": [
+        "death_comp",
+        "funeral",
+        "accommodation",
+        "future_medical"
+      ],
+      "member_evidence": {
+        "death_comp": "n=78；SR 分布集中于 1（P(SR=1)=0.577）",
+        "funeral": "n=78；SR 集中于高值（中位数 0.970）",
+        "accommodation": "n=104；P(SR=0)=0.663，极端驳回集中",
+        "future_medical": "n=172；P(SR=0)=0.826，极端驳回集中且依赖鉴定结论"
+      },
+      "note": "C 类标记与 A/B 归属正交：四项 C 类项目的 A/B 建议均为 Rule-based，但仅作标记，不因样本量自动判为规则项目，也不进入主要模型排名。"
+    }
+  },
+  "decision_protocol": {
+    "decided_at_stage": 2,
+    "method": "JDI 数据驱动排序 + 最大间隙自动分界（法律先验仅用于解释，不参与判定）",
+    "sample_size_role": "样本量不再决定 A/B 归属，仅用于标记 C 类（small_sample=true）与标注证据强度",
+    "tier_C_effect": "C 类标记与 A/B 归属正交：一个项目可同时属于 A 或 B 且被标记 C",
+    "output_file": "results/stage2/item_tier_assignment.csv",
+    "required_outputs": [
+      "JDI 分项排序表",
+      "阈值敏感性分析",
+      "法律规则先验对照表"
+    ],
+    "decided": true,
+    "gap_cut_JDI": 38.5306
+  },
+  "item_inventory": [
+    {
+      "item": "medical",
+      "n_claim_gt_0": 1511,
+      "sr_median": 1.0
+    },
+    {
+      "item": "future_medical",
+      "n_claim_gt_0": 172,
+      "sr_median": 0.0
+    },
+    {
+      "item": "hospital_meal",
+      "n_claim_gt_0": 967,
+      "sr_median": 1.0
+    },
+    {
+      "item": "nutrition",
+      "n_claim_gt_0": 1281,
+      "sr_median": 0.666667
+    },
+    {
+      "item": "nursing",
+      "n_claim_gt_0": 1245,
+      "sr_median": 0.75
+    },
+    {
+      "item": "lost_income",
+      "n_claim_gt_0": 1411,
+      "sr_median": 0.539491
+    },
+    {
+      "item": "transport",
+      "n_claim_gt_0": 1598,
+      "sr_median": 0.568447
+    },
+    {
+      "item": "accommodation",
+      "n_claim_gt_0": 104,
+      "sr_median": 0.0
+    },
+    {
+      "item": "disability_comp",
+      "n_claim_gt_0": 614,
+      "sr_median": 1.0
+    },
+    {
+      "item": "assistive_device",
+      "n_claim_gt_0": 528,
+      "sr_median": 1.0
+    },
+    {
+      "item": "death_comp",
+      "n_claim_gt_0": 78,
+      "sr_median": 1.0
+    },
+    {
+      "item": "funeral",
+      "n_claim_gt_0": 78,
+      "sr_median": 0.969665
+    },
+    {
+      "item": "mental_solatium",
+      "n_claim_gt_0": 1079,
+      "sr_median": 0.5
+    },
+    {
+      "item": "property_loss",
+      "n_claim_gt_0": 1500,
+      "sr_median": 0.69331
+    },
+    {
+      "item": "appraisal",
+      "n_claim_gt_0": 843,
+      "sr_median": 1.0
+    },
+    {
+      "item": "other",
+      "n_claim_gt_0": 368,
+      "sr_median": 0.0
+    }
+  ],
+  "prohibitions": [
+    "禁止以样本量阈值直接判定项目为规则项目",
+    "禁止删除任何赔偿项目",
+    "禁止在 Stage 2 之前预先指定任何项目的归属"
+  ],
+  "source_of_counts": "results/stage0/item_basic_statistics.csv",
+  "updated_at": "2026-09-26T10:18:24",
+  "updated_at_stage": "stage2_decision",
+  "small_sample_fallback": {
+    "name": "Rule-informed fallback",
+    "principle": "C 类项目不删除；最终案件级预测按法律规则可用性分三级回退，回退统计量仅在训练折内计算",
+    "priority_1": {
+      "condition": "存在明确法律计算公式",
+      "action": "规则计算",
+      "items": [
+        "death_comp",
+        "funeral"
+      ],
+      "basis": "death_comp：人均可支配收入 × 法定年限；funeral：职工月平均工资 × 6 个月"
+    },
+    "priority_2": {
+      "condition": "存在规则约束但无完整公式",
+      "action": "规则约束 + 训练集 SR 统计先验",
+      "items": [
+        "accommodation",
+        "future_medical"
+      ],
+      "basis": "accommodation：凭据 + 合理性约束；future_medical：需鉴定结论或待实际发生"
+    },
+    "priority_3": {
+      "condition": "无规则可依",
+      "action": "训练集 SR 中位数",
+      "items": []
+    },
+    "prohibitions": [
+      "禁止 C 类项目直接进入主要模型排名",
+      "禁止删除 C 类项目或其样本",
+      "禁止在训练/测试划分前使用全量统计先验"
+    ],
+    "ablation_at_stage": 6,
+    "implementation_stage": 3
+  },
+  "rule_based": [
+    "appraisal",
+    "assistive_device",
+    "disability_comp",
+    "hospital_meal",
+    "medical"
+  ],
+  "ml_based": [
+    "lost_income",
+    "mental_solatium",
+    "nursing",
+    "nutrition",
+    "other",
+    "property_loss",
+    "transport"
+  ],
+  "small_sample": [
+    "accommodation",
+    "death_comp",
+    "funeral",
+    "future_medical"
+  ],
+  "assigned_at_stage": 2,
+  "assigned_at": "2026-10-10T16:50:37",
+  "gap_cut_JDI": 38.5306
+}
